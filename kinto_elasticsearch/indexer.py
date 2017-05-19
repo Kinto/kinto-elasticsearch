@@ -14,14 +14,10 @@ class Indexer(object):
 
     def search(self, bucket_id, collection_id, query, **kwargs):
         indexname = '%s-%s' % (bucket_id, collection_id)
-        try:
-            return self.client.search(index=indexname,
-                                      doc_type=indexname,
-                                      body=query,
-                                      **kwargs)
-        except elasticsearch.ElasticsearchException as e:
-            logger.error(e)
-        return {}
+        return self.client.search(index=indexname,
+                                  doc_type=indexname,
+                                  body=query,
+                                  **kwargs)
 
     def index_record(self, bucket_id, collection_id, record, id_field):
         indexname = '%s-%s' % (bucket_id, collection_id)
@@ -40,15 +36,11 @@ class Indexer(object):
     def unindex_record(self, bucket_id, collection_id, record, id_field):
         indexname = '%s-%s' % (bucket_id, collection_id)
         record_id = record[id_field]
-        try:
-            result = self.client.delete(index=indexname,
-                                        doc_type=indexname,
-                                        id=record_id,
-                                        refresh=True)
-            return result
-        except elasticsearch.ElasticsearchException as e:
-            logger.error(e)
-            raise
+        result = self.client.delete(index=indexname,
+                                    doc_type=indexname,
+                                    id=record_id,
+                                    refresh=True)
+        return result
 
 
 def load_from_config(config):

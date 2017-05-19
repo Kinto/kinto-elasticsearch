@@ -1,5 +1,6 @@
 import logging
 
+import elasticsearch
 from kinto.core import Service
 
 
@@ -21,7 +22,7 @@ def get_search(request):
     indexer = request.registry.indexer
     try:
         results = indexer.search(bucket_id, collection_id, query)
-    except Exception as e:
-        logger.exception(e)
+    except elasticsearch.ElasticsearchException as e:
+        logger.exception("Index query failed.")
         results = {}
     return results
