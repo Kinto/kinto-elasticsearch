@@ -1,7 +1,6 @@
 import logging
 
 import elasticsearch
-from elasticsearch import helpers
 from kinto.core.events import ACTIONS
 
 
