@@ -16,6 +16,7 @@ virtualenv: $(PYTHON)
 $(PYTHON):
 	virtualenv $(VENV) --python=python3
 
+install: $(INSTALL_STAMP)
 $(INSTALL_STAMP): $(PYTHON) setup.py
 	$(VENV)/bin/pip install -U pip
 	$(VENV)/bin/pip install -Ue .
