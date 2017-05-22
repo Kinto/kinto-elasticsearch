@@ -1,0 +1,9 @@
+pytest
+pytest-cache
+pytest-cover
+pytest-sugar
+pytest-xdist
+pytest-capturelog
+mock
+unittest2
+webtest

@@ -13,8 +13,6 @@ jsonpatch==1.15
 jsonpointer==1.10
 jsonschema==2.6.0
 kinto==7.0.1
-## !! Could not determine repository location
-kinto-elasticsearch==0.0.1.dev0
 logging-color-formatter==1.0.2
 packaging==16.8
 PasteDeploy==1.5.2
