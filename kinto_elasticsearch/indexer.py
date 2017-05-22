@@ -2,6 +2,7 @@ import logging
 from contextlib import contextmanager
 
 import elasticsearch
+import elasticsearch.helpers
 from pyramid.settings import aslist
 
 
