@@ -19,7 +19,7 @@ $(TOX): virtualenv
 	$(VENV)/bin/pip install tox
 
 tests-once: install-dev
-	$(VENV)/bin/py.test --cov-report term-missing --cov kinto_elasticsearch
+	$(VENV)/bin/py.test --cov-report term-missing --cov-fail-under 100 --cov kinto_elasticsearch
 
 tests: tox
 	$(VENV)/bin/tox

@@ -16,7 +16,7 @@ def on_record_changed(event):
 
     for change in event.impacted_records:
         try:
-            if action == ACTIONS.DELETE:
+            if action == ACTIONS.DELETE.value:
                 indexer.unindex_record(bucket_id,
                                        collection_id,
                                        record=change["old"],
