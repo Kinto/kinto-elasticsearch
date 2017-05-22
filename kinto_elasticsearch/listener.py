@@ -28,3 +28,8 @@ def on_record_changed(event):
                                      id_field="id")
         except elasticsearch.ElasticsearchException:
             logger.exception("Failed to index record")
+
+
+def on_server_flushed(event):
+    indexer = event.request.registry.indexer
+    indexer.flush()
