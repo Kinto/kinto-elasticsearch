@@ -5,7 +5,9 @@ Changelog
 0.1.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+**New features**
+
+- Flush indices when server is flushed (fixes #4)
 
 
 0.0.1 (2017-05-22)

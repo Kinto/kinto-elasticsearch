@@ -20,7 +20,12 @@ class PluginSetup(BaseWebTest, unittest.TestCase):
             "description": "Index and search records using ElasticSearch.",
             "url": "https://github.com/Kinto/kinto-elasticsearch"
         }
-        self.assertEqual(expected, capabilities['elasticsearch'])
+        assert expected == capabilities['elasticsearch']
+
+    def test_indexer_flush(self):
+        with mock.patch("kinto_elasticsearch.indexer.Indexer.flush") as flush:
+            self.app.post("/__flush__", status=202)
+            assert flush.called
 
 
 class RecordIndexing(BaseWebTest, unittest.TestCase):

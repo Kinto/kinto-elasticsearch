@@ -18,6 +18,9 @@ class BaseWebTest(CoreWebTest):
         super(BaseWebTest, self).__init__(*args, **kwargs)
         self.headers.update(get_user_headers('mat'))
 
+    def tearDown(self):
+        self.app.app.registry.indexer.flush()
+
     @classmethod
     def get_app_settings(cls, extras=None):
         ini_path = os.path.join(here, cls.config)

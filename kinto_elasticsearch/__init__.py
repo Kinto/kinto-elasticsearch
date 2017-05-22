@@ -1,6 +1,7 @@
 import pkg_resources
 
 from kinto.core import load_default_settings
+from kinto.events import ServerFlushed
 from kinto.core.events import ResourceChanged
 
 from . import indexer
@@ -28,6 +29,7 @@ def includeme(config):
 
     config.add_subscriber(listener.on_record_changed, ResourceChanged,
                           for_resources=("record",))
+    config.add_subscriber(listener.on_server_flushed, ServerFlushed)
 
     config.add_api_capability("elasticsearch",
                               description="Index and search records using ElasticSearch.",
