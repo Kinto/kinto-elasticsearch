@@ -1,17 +1,27 @@
 import logging
 
 import elasticsearch
+from kinto.core import authorization
 from kinto.core import Service
 
 
 logger = logging.getLogger(__name__)
 
+
+class RouteFactory(authorization.RouteFactory):
+    def __init__(self, request):
+        super().__init__(request)
+        self.permission_object_id = request.path.replace("/search", "/records")
+        self.required_permission = "read"
+
+
 search = Service(name="search",
                  path='/buckets/{bucket_id}/collections/{collection_id}/search',
-                 description="Search")
+                 description="Search",
+                 factory=RouteFactory)
 
 
-@search.post()
+@search.post(permission=authorization.DYNAMIC)
 def get_search(request):
     bucket_id = request.matchdict['bucket_id']
     collection_id = request.matchdict['collection_id']

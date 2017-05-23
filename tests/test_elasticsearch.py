@@ -106,7 +106,9 @@ class PermissionsCheck(BaseWebTest, unittest.TestCase):
         self.app.put("/buckets/bid", headers=self.headers)
         self.app.put("/buckets/bid/collections/cid", headers=self.headers)
 
-        self.app.post("/buckets/bid/collections/cid/search", status=403)
+        self.app.post("/buckets/bid/collections/cid/search", status=401)
+        headers = get_user_headers("cual", "quiera")
+        self.app.post("/buckets/bid/collections/cid/search", status=403, headers=headers)
 
     def test_search_is_not_allowed_if_only_read_on_certain_records(self):
         self.app.put("/buckets/bid", headers=self.headers)
