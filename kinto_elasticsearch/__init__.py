@@ -2,7 +2,7 @@ import pkg_resources
 
 from kinto.core import load_default_settings
 from kinto.events import ServerFlushed
-from kinto.core.events import ResourceChanged
+from kinto.core.events import AfterResourceChanged
 
 from . import indexer
 from . import listener
@@ -27,7 +27,7 @@ def includeme(config):
     # Activate end-points.
     config.scan("kinto_elasticsearch.views")
 
-    config.add_subscriber(listener.on_record_changed, ResourceChanged,
+    config.add_subscriber(listener.on_record_changed, AfterResourceChanged,
                           for_resources=("record",))
     config.add_subscriber(listener.on_server_flushed, ServerFlushed)
 
