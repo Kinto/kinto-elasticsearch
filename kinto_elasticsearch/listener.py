@@ -7,6 +7,14 @@ from kinto.core.events import ACTIONS
 logger = logging.getLogger(__name__)
 
 
+def on_collection_created(event):
+    indexer = event.request.registry.indexer
+    bucket_id = event.payload["bucket_id"]
+    for created in event.impacted_records:
+        collection_id = created["new"]["id"]
+        indexer.create_index(bucket_id, collection_id)
+
+
 def on_record_changed(event):
     indexer = event.request.registry.indexer
 

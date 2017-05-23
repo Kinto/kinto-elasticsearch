@@ -14,6 +14,10 @@ Changelog
 
 - Only index records if the storage transaction is committed (fixes #15)
 
+**Internal changes**
+
+- Create index when collection is created (fixes #27)
+
 
 0.0.1 (2017-05-22)
 ------------------

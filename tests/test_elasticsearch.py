@@ -44,7 +44,7 @@ class RecordIndexing(BaseWebTest, unittest.TestCase):
         result = resp.json
         assert result["hits"]["hits"][0]["_source"] == self.record
 
-    def test_new_records_are_indexed(self):
+    def test_deleted_records_are_unindexed(self):
         rid = self.record["id"]
         self.app.delete("/buckets/bid/collections/cid/records/{}".format(rid),
                         headers=self.headers)
@@ -70,3 +70,11 @@ class SearchView(BaseWebTest, unittest.TestCase):
                                  headers=self.headers)
             result = resp.json
             assert result == {}
+
+    def test_search_on_empty_collection_returns_empty_list(self):
+        self.app.put("/buckets/bid", headers=self.headers)
+        self.app.put("/buckets/bid/collections/cid", headers=self.headers)
+        resp = self.app.post("/buckets/bid/collections/cid/search",
+                             headers=self.headers)
+        result = resp.json
+        assert len(result["hits"]["hits"]) == 0
