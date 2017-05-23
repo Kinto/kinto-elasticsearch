@@ -61,6 +61,22 @@ class BulkClient:
         })
 
 
+def heartbeat(request):
+    """Test that ElasticSearch is operationnal.
+
+    :param request: current request object
+    :type request: :class:`~pyramid:pyramid.request.Request`
+    :returns: ``True`` is everything is ok, ``False`` otherwise.
+    :rtype: bool
+    """
+    indexer = request.registry.indexer
+    try:
+        return indexer.client.ping()
+    except Exception as e:
+        logger.exception(e)
+        return False
+
+
 def load_from_config(config):
     settings = config.get_settings()
     hosts = aslist(settings.get('elasticsearch.hosts', 'localhost:9200'))

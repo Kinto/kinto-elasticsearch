@@ -15,6 +15,9 @@ def includeme(config):
     # Register a global indexer object
     config.registry.indexer = indexer.load_from_config(config)
 
+    # Register heartbeat to check elasticsearch integration.
+    config.registry.heartbeats["elasticsearch"] = indexer.heartbeat
+
     # Activate end-points.
     config.scan("kinto_elasticsearch.views")
 

@@ -27,6 +27,16 @@ class PluginSetup(BaseWebTest, unittest.TestCase):
             self.app.post("/__flush__", status=202)
             assert flush.called
 
+    def test_present_in_heartbeat(self):
+        resp = self.app.get("/__heartbeat__")
+        assert "elasticsearch" in resp.json
+
+    def test_returns_false_if_connection_fails(self):
+        with mock.patch("kinto_elasticsearch.indexer.elasticsearch.Elasticsearch.ping",
+                        side_effect=ValueError):
+            resp = self.app.get("/__heartbeat__", status=503)
+            assert not resp.json["elasticsearch"]
+
 
 class RecordIndexing(BaseWebTest, unittest.TestCase):
 
