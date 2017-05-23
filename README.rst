@@ -32,6 +32,19 @@ In the `Kinto <http://kinto.readthedocs.io/>`_ settings:
     kinto.includes = kinto_elasticsearch
     kinto.elasticsearch.hosts = localhost:9200
 
+By default, ElasticSearch is smart and indices are not refreshed on every change.
+You can force this (with a certain drawback in performance):
+
+.. code-block :: ini
+
+    kinto.elasticsearch.force_refresh = true
+
+By default, indices names are prefixed with ``kinto-``. You change this with:
+
+.. code-block :: ini
+
+    kinto.elasticsearch.index_prefix = myprefix
+
 
 Run ElasticSearch
 =================
