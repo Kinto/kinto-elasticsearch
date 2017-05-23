@@ -3,6 +3,7 @@ import logging
 import elasticsearch
 from kinto.core import authorization
 from kinto.core import Service
+from kinto.core import utils
 
 
 logger = logging.getLogger(__name__)
@@ -11,7 +12,8 @@ logger = logging.getLogger(__name__)
 class RouteFactory(authorization.RouteFactory):
     def __init__(self, request):
         super().__init__(request)
-        self.permission_object_id = request.path.replace("/search", "/records")
+        records_plural = utils.strip_uri_prefix(request.path.replace("/search", "/records"))
+        self.permission_object_id = records_plural
         self.required_permission = "read"
 
 

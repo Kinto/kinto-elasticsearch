@@ -65,6 +65,8 @@ class RecordIndexing(BaseWebTest, unittest.TestCase):
 
 class SearchView(BaseWebTest, unittest.TestCase):
     def test_search_response_is_empty_if_indexer_fails(self):
+        self.app.put("/buckets/bid", headers=self.headers)
+        self.app.put("/buckets/bid/collections/cid", headers=self.headers)
         with mock.patch("kinto_elasticsearch.indexer.Indexer.search",
                         side_effect=elasticsearch.ElasticsearchException):
             resp = self.app.post("/buckets/bid/collections/cid/search",
