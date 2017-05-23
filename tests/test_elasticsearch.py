@@ -4,6 +4,7 @@ import unittest
 
 import elasticsearch
 from kinto.core import utils as core_utils
+from kinto.core.testing import get_user_headers
 
 from kinto_elasticsearch import __version__ as elasticsearch_version
 from . import BaseWebTest
@@ -70,3 +71,49 @@ class SearchView(BaseWebTest, unittest.TestCase):
                                  headers=self.headers)
             result = resp.json
             assert result == {}
+
+
+class PermissionsCheck(BaseWebTest, unittest.TestCase):
+    def test_search_is_allowed_if_write_on_bucket(self):
+        body = {"permissions": {"write": ["system.Everyone"]}}
+        self.app.put_json("/buckets/bid", body, headers=self.headers)
+        self.app.put("/buckets/bid/collections/cid", headers=self.headers)
+
+        self.app.post("/buckets/bid/collections/cid/search", status=200)
+
+    def test_search_is_allowed_if_read_on_bucket(self):
+        body = {"permissions": {"read": ["system.Everyone"]}}
+        self.app.put_json("/buckets/bid", body, headers=self.headers)
+        self.app.put("/buckets/bid/collections/cid", headers=self.headers)
+
+        self.app.post("/buckets/bid/collections/cid/search", status=200)
+
+    def test_search_is_allowed_if_write_on_collection(self):
+        self.app.put("/buckets/bid", headers=self.headers)
+        body = {"permissions": {"write": ["system.Everyone"]}}
+        self.app.put_json("/buckets/bid/collections/cid", body, headers=self.headers)
+
+        self.app.post("/buckets/bid/collections/cid/search", status=200)
+
+    def test_search_is_allowed_if_read_on_collection(self):
+        self.app.put("/buckets/bid", headers=self.headers)
+        body = {"permissions": {"read": ["system.Everyone"]}}
+        self.app.put_json("/buckets/bid/collections/cid", body, headers=self.headers)
+
+        self.app.post("/buckets/bid/collections/cid/search", status=200)
+
+    def test_search_is_not_allowed_by_default(self):
+        self.app.put("/buckets/bid", headers=self.headers)
+        self.app.put("/buckets/bid/collections/cid", headers=self.headers)
+
+        self.app.post("/buckets/bid/collections/cid/search", status=403)
+
+    def test_search_is_not_allowed_if_only_read_on_certain_records(self):
+        self.app.put("/buckets/bid", headers=self.headers)
+        body = {"permissions": {"record:create": ["system.Authenticated"]}}
+        self.app.put_json("/buckets/bid/collections/cid", body, headers=self.headers)
+        headers = get_user_headers("toto")
+        self.app.post_json("/buckets/bid/collections/cid/records", {"data": {"pi": 42}},
+                           headers=headers)
+
+        self.app.post("/buckets/bid/collections/cid/search", status=403, headers=headers)
