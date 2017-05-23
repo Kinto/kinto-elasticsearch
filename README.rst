@@ -58,17 +58,18 @@ Create a new record:
 
 ::
 
-    $ echo '{"data": {"note": "kinto"}}' | http POST http://localhost:8888/v1/buckets/example/collections/notes/records --auth token:alice-token --verbose
+    $ echo '{"data": {"note": "kinto"}}' | http POST http://localhost:8888/v1/buckets/example/collections/notes/records --auth token:alice-token
 
 
-It should now be possible to search for it:
+It should now be possible to search for it using the `ElasticSearch API <https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html>`_.
+
+For example, send a request body search:
 
 ::
 
-    $ http POST http://localhost:8888/v1/buckets/default/collections/assets/search --auth token:alice-token --verbose
+    $ echo '{"query": {"match_all": {}}}' | http POST http://localhost:8888/v1/buckets/example/collections/notes/search --auth token:alice-token
 
 .. code-block:: http
-    :emphasize-lines: 20-24
 
     HTTP/1.1 200 OK
     Access-Control-Expose-Headers: Retry-After, Content-Length, Alert, Backoff
