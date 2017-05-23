@@ -10,6 +10,7 @@ Changelog
 - Flush indices when server is flushed (fixes #4)
 - Perform insertions and deletion in bulk for better efficiency (fixes #5)
 - Add setting to force index refresh on change (fixes #6)
+- Add heartbeat (fixes #3)
 
 **Bug fixes**
 
