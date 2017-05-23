@@ -3,16 +3,17 @@ from contextlib import contextmanager
 
 import elasticsearch
 import elasticsearch.helpers
-from pyramid.settings import aslist
+from pyramid.settings import aslist, asbool
 
 
 logger = logging.getLogger(__name__)
 
 
 class Indexer(object):
-    def __init__(self, hosts, prefix="kinto"):
+    def __init__(self, hosts, prefix="kinto", force_refresh=False):
         self.client = elasticsearch.Elasticsearch(hosts)
         self.prefix = prefix
+        self.force_refresh = force_refresh
 
     def indexname(self, bucket_id, collection_id):
         return "{}-{}-{}".format(self.prefix, bucket_id, collection_id)
@@ -31,7 +32,9 @@ class Indexer(object):
     def bulk(self):
         bulk = BulkClient(self)
         yield bulk
-        elasticsearch.helpers.bulk(self.client, bulk.operations)
+        elasticsearch.helpers.bulk(self.client,
+                                   bulk.operations,
+                                   refresh=self.force_refresh)
 
 
 class BulkClient:
@@ -64,5 +67,7 @@ class BulkClient:
 def load_from_config(config):
     settings = config.get_settings()
     hosts = aslist(settings.get('elasticsearch.hosts', 'localhost:9200'))
-    indexer = Indexer(hosts=hosts)
+    prefix = settings.get('elasticsearch.index_prefix', 'kinto')
+    force_refresh = asbool(settings.get('elasticsearch.force_refresh', 'false'))
+    indexer = Indexer(hosts=hosts, prefix=prefix, force_refresh=force_refresh)
     return indexer
