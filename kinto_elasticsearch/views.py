@@ -26,6 +26,12 @@ search = Service(name="search",
 @search.post(permission=authorization.DYNAMIC)
 def get_search(request):
     bucket_id = request.matchdict['bucket_id']
+    if bucket_id == "default":
+        try:
+            bucket_id = request.default_bucket_id
+        except AttributeError as e:  # pragma: no cover
+            pass  # `default` bucket without default_bucket plugin.
+
     collection_id = request.matchdict['collection_id']
 
     query = request.body
