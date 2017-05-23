@@ -21,6 +21,8 @@ def includeme(config):
     config.add_subscriber(listener.on_record_changed, AfterResourceChanged,
                           for_resources=("record",))
     config.add_subscriber(listener.on_server_flushed, ServerFlushed)
+    config.add_subscriber(listener.on_collection_created, AfterResourceChanged,
+                          for_resources=("collection",), for_actions=("create",))
 
     config.add_api_capability("elasticsearch",
                               description="Index and search records using ElasticSearch.",

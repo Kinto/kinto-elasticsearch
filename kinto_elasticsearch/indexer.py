@@ -17,6 +17,12 @@ class Indexer(object):
     def indexname(self, bucket_id, collection_id):
         return "{}-{}-{}".format(self.prefix, bucket_id, collection_id)
 
+    def create_index(self, bucket_id, collection_id):
+        indexname = self.indexname(bucket_id, collection_id)
+        # Only if necessary.
+        if not self.client.indices.exists(index=indexname):
+            self.client.indices.create(index=indexname)
+
     def search(self, bucket_id, collection_id, query, **kwargs):
         indexname = self.indexname(bucket_id, collection_id)
         return self.client.search(index=indexname,
@@ -31,7 +37,7 @@ class Indexer(object):
     def bulk(self):
         bulk = BulkClient(self)
         yield bulk
-        elasticsearch.helpers.bulk(self.client, bulk.operations)
+        elasticsearch.helpers.bulk(self.client, bulk.operations, refresh=True)
 
 
 class BulkClient:
