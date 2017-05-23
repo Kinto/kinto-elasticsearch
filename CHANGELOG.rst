@@ -15,6 +15,7 @@ Changelog
 **Bug fixes**
 
 - Only index records if the storage transaction is committed (fixes #15)
+- Do not allow to search if no read permission on collection or bucket (fixes #7)
 
 **Internal changes**
 

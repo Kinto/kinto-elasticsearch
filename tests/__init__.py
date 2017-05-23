@@ -19,6 +19,7 @@ class BaseWebTest(CoreWebTest):
         self.headers.update(get_user_headers('mat'))
 
     def tearDown(self):
+        super().tearDown()
         self.app.app.registry.indexer.flush()
 
     @classmethod
