@@ -1,7 +1,8 @@
 import logging
+from contextlib import contextmanager
 
 import elasticsearch
-
+import elasticsearch.helpers
 from pyramid.settings import aslist
 
 
@@ -13,38 +14,51 @@ class Indexer(object):
         self.client = elasticsearch.Elasticsearch(hosts)
         self.prefix = prefix
 
+    def indexname(self, bucket_id, collection_id):
+        return "{}-{}-{}".format(self.prefix, bucket_id, collection_id)
+
     def search(self, bucket_id, collection_id, query, **kwargs):
-        indexname = "{}-{}-{}".format(self.prefix, bucket_id, collection_id)
+        indexname = self.indexname(bucket_id, collection_id)
         return self.client.search(index=indexname,
                                   doc_type=indexname,
                                   body=query,
                                   **kwargs)
 
-    def index_record(self, bucket_id, collection_id, record, id_field):
-        indexname = "{}-{}-{}".format(self.prefix, bucket_id, collection_id)
-        record_id = record[id_field]
-
-        if not self.client.indices.exists(index=indexname):
-            self.client.indices.create(index=indexname)
-
-        index = self.client.index(index=indexname,
-                                  doc_type=indexname,
-                                  id=record_id,
-                                  body=record,
-                                  refresh=True)
-        return index
-
-    def unindex_record(self, bucket_id, collection_id, record, id_field):
-        indexname = "{}-{}-{}".format(self.prefix, bucket_id, collection_id)
-        record_id = record[id_field]
-        result = self.client.delete(index=indexname,
-                                    doc_type=indexname,
-                                    id=record_id,
-                                    refresh=True)
-        return result
-
     def flush(self):
         self.client.indices.delete(index="{}-*".format(self.prefix))
+
+    @contextmanager
+    def bulk(self):
+        bulk = BulkClient(self)
+        yield bulk
+        elasticsearch.helpers.bulk(self.client, bulk.operations)
+
+
+class BulkClient:
+    def __init__(self, indexer):
+        self.indexer = indexer
+        self.operations = []
+
+    def index_record(self, bucket_id, collection_id, record, id_field):
+        indexname = self.indexer.indexname(bucket_id, collection_id)
+        record_id = record[id_field]
+        self.operations.append({
+            '_op_type': 'index',
+            '_index': indexname,
+            '_type': indexname,
+            '_id': record_id,
+            '_source': record,
+        })
+
+    def unindex_record(self, bucket_id, collection_id, record, id_field):
+        indexname = self.indexer.indexname(bucket_id, collection_id)
+        record_id = record[id_field]
+        self.operations.append({
+            '_op_type': 'delete',
+            '_index': indexname,
+            '_type': indexname,
+            '_id': record_id,
+        })
 
 
 def load_from_config(config):

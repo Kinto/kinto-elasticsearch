@@ -8,6 +8,7 @@ Changelog
 **New features**
 
 - Flush indices when server is flushed (fixes #4)
+- Perform insertions and deletion in bulk for better efficiency (fixes #5)
 
 
 0.0.1 (2017-05-22)

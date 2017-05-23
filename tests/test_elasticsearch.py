@@ -54,7 +54,7 @@ class RecordIndexing(BaseWebTest, unittest.TestCase):
         assert len(result["hits"]["hits"]) == 0
 
     def test_response_is_served_if_indexer_fails(self):
-        with mock.patch("kinto_elasticsearch.indexer.elasticsearch.Elasticsearch.index",
+        with mock.patch("kinto_elasticsearch.indexer.elasticsearch.helpers.bulk",
                         side_effect=elasticsearch.ElasticsearchException):
             r = self.app.post_json("/buckets/bid/collections/cid/records",
                                    {"data": {"hola": "mundo"}},
