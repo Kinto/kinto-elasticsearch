@@ -10,9 +10,12 @@ Changelog
 - Flush indices when server is flushed (fixes #4)
 - Perform insertions and deletion in bulk for better efficiency (fixes #5)
 
+**Bug fixes**
+
+- Only index records if the storage transaction is committed (fixes #15)
+
 
 0.0.1 (2017-05-22)
 ------------------
 
 - Import code from `Kinto official tutorial <http://kinto.readthedocs.io/en/stable/tutorials/write-plugin.html>`_
-
