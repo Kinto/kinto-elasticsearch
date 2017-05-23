@@ -31,6 +31,9 @@ def search_view(request, **kwargs):
     indexer = request.registry.indexer
     try:
         results = indexer.search(bucket_id, collection_id, **kwargs)
+    except elasticsearch.RequestError as e:
+        description = e.info["error"]["reason"]
+        raise_invalid(request, location="body", description=description)
     except elasticsearch.ElasticsearchException as e:
         logger.exception("Index query failed.")
         results = {}

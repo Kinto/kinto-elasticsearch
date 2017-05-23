@@ -109,6 +109,14 @@ class SearchView(BaseWebTest, unittest.TestCase):
             result = resp.json
             assert result == {}
 
+    def test_invalid_search_query(self):
+        body = {"whatever": {"wrong": "bad"}}
+        resp = self.app.post_json("/buckets/bid/collections/cid/search",
+                                  body,
+                                  headers=self.headers,
+                                  status=400)
+        assert resp.json["message"] == "body: Unknown key for a START_OBJECT in [whatever]."
+
     def test_search_on_empty_collection_returns_empty_list(self):
         resp = self.app.post("/buckets/bid/collections/cid/search",
                              headers=self.headers)

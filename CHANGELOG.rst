@@ -13,6 +13,7 @@ Changelog
 - Add heartbeat (fixes #3)
 - Delete indices when buckets and collections are deleted (fixes #21)
 - Support quick search from querystring (fixes #34)
+- Return details about invalid queries in request body (fixes #23)
 
 **Bug fixes**
 
