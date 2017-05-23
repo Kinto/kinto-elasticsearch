@@ -1,6 +1,5 @@
 import pkg_resources
 
-from kinto.core import load_default_settings
 from kinto.events import ServerFlushed
 from kinto.core.events import ResourceChanged
 
@@ -12,15 +11,7 @@ from . import listener
 __version__ = pkg_resources.get_distribution(__package__).version
 
 
-DEFAULT_SETTINGS = {
-    'elasticsearch.refresh_enabled': False
-}
-
-
 def includeme(config):
-    # Load settings from environment and apply defaults.
-    load_default_settings(config, DEFAULT_SETTINGS)
-
     # Register a global indexer object
     config.registry.indexer = indexer.load_from_config(config)
 
