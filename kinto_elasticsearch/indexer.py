@@ -28,8 +28,10 @@ class Indexer(object):
         if collection_id is None:
             collection_id = "*"
         indexname = self.indexname(bucket_id, collection_id)
-        if self.client.indices.exists(index=indexname):
-            self.client.indices.delete(index=indexname)
+        try:
+            return self.client.indices.delete(index=indexname)
+        except elasticsearch.exceptions.NotFoundError:  # pragma: no cover
+            pass
 
     def search(self, bucket_id, collection_id, query, **kwargs):
         indexname = self.indexname(bucket_id, collection_id)
