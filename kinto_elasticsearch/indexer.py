@@ -24,6 +24,13 @@ class Indexer(object):
         if not self.client.indices.exists(index=indexname):
             self.client.indices.create(index=indexname)
 
+    def delete_index(self, bucket_id, collection_id=None):
+        if collection_id is None:
+            collection_id = "*"
+        indexname = self.indexname(bucket_id, collection_id)
+        if self.client.indices.exists(index=indexname):
+            self.client.indices.delete(index=indexname)
+
     def search(self, bucket_id, collection_id, query, **kwargs):
         indexname = self.indexname(bucket_id, collection_id)
         return self.client.search(index=indexname,
