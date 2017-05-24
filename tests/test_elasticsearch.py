@@ -115,7 +115,13 @@ class SearchView(BaseWebTest, unittest.TestCase):
                                   body,
                                   headers=self.headers,
                                   status=400)
-        assert resp.json["message"] == "body: Unknown key for a START_OBJECT in [whatever]."
+        assert resp.json["message"] == "Unknown key for a START_OBJECT in [whatever]."
+        assert resp.json["details"] == {
+            "col": 14,
+            "line": 1,
+            "reason": "Unknown key for a START_OBJECT in [whatever].",
+            "type": "parsing_exception"
+        }
 
     def test_search_on_empty_collection_returns_empty_list(self):
         resp = self.app.post("/buckets/bid/collections/cid/search",
