@@ -76,7 +76,14 @@ Create a new record:
 
 It should now be possible to search for it using the `ElasticSearch API <https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html>`_.
 
-For example, send a request body search:
+For example, using a quick querystring search:
+
+::
+
+    $ http "http://localhost:8888/v1/buckets/example/collections/notes/search?q=note:kinto"--auth token:alice-token
+
+
+Or an advanced search using request body:
 
 ::
 

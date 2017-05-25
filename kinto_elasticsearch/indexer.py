@@ -33,11 +33,10 @@ class Indexer(object):
         except elasticsearch.exceptions.NotFoundError:  # pragma: no cover
             pass
 
-    def search(self, bucket_id, collection_id, query, **kwargs):
+    def search(self, bucket_id, collection_id, **kwargs):
         indexname = self.indexname(bucket_id, collection_id)
         return self.client.search(index=indexname,
                                   doc_type=indexname,
-                                  body=query,
                                   **kwargs)
 
     def flush(self):

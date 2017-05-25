@@ -12,6 +12,7 @@ Changelog
 - Add setting to force index refresh on change (fixes #6)
 - Add heartbeat (fixes #3)
 - Delete indices when buckets and collections are deleted (fixes #21)
+- Support quick search from querystring (fixes #34)
 
 **Bug fixes**
 

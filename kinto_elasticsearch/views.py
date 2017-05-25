@@ -23,18 +23,27 @@ search = Service(name="search",
                  factory=RouteFactory)
 
 
-@search.post(permission=authorization.DYNAMIC)
-def get_search(request):
+def search_view(request, **kwargs):
     bucket_id = request.matchdict['bucket_id']
     collection_id = request.matchdict['collection_id']
-
-    query = request.body
 
     # Access indexer from views using registry.
     indexer = request.registry.indexer
     try:
-        results = indexer.search(bucket_id, collection_id, query)
+        results = indexer.search(bucket_id, collection_id, **kwargs)
     except elasticsearch.ElasticsearchException as e:
         logger.exception("Index query failed.")
         results = {}
     return results
+
+
+@search.post(permission=authorization.DYNAMIC)
+def post_search(request):
+    body = request.body
+    return search_view(request, body=body)
+
+
+@search.get(permission=authorization.DYNAMIC)
+def get_search(request):
+    q = request.GET.get("q")
+    return search_view(request, q=q)
