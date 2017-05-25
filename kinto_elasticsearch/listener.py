@@ -15,6 +15,21 @@ def on_collection_created(event):
         indexer.create_index(bucket_id, collection_id)
 
 
+def on_collection_deleted(event):
+    indexer = event.request.registry.indexer
+    bucket_id = event.payload["bucket_id"]
+    for deleted in event.impacted_records:
+        collection_id = deleted["old"]["id"]
+        indexer.delete_index(bucket_id, collection_id)
+
+
+def on_bucket_deleted(event):
+    indexer = event.request.registry.indexer
+    for deleted in event.impacted_records:
+        bucket_id = deleted["old"]["id"]
+        indexer.delete_index(bucket_id)
+
+
 def on_record_changed(event):
     indexer = event.request.registry.indexer
 

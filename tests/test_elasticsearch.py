@@ -73,6 +73,29 @@ class RecordIndexing(BaseWebTest, unittest.TestCase):
             assert r.status_code == 201
 
 
+class ParentDeletion(BaseWebTest, unittest.TestCase):
+
+    def setUp(self):
+        self.app.put("/buckets/bid", headers=self.headers)
+        self.app.put("/buckets/bid/collections/cid", headers=self.headers)
+        resp = self.app.post_json("/buckets/bid/collections/cid/records",
+                                  {"data": {"hello": "world"}},
+                                  headers=self.headers)
+
+    def index_exists(self, bucket_id, collection_id):
+        indexer = self.app.app.registry.indexer
+        indexname = indexer.indexname(bucket_id, collection_id)
+        return indexer.client.indices.exists(indexname)
+
+    def test_index_is_deleted_when_collection_is_deleted(self):
+        self.app.delete("/buckets/bid/collections/cid", headers=self.headers)
+        assert not self.index_exists("bid", "cid")
+
+    def test_index_is_deleted_when_bucket_is_deleted(self):
+        self.app.delete("/buckets/bid", headers=self.headers)
+        assert not self.index_exists("bid", "cid")
+
+
 class SearchView(BaseWebTest, unittest.TestCase):
     def test_search_response_is_empty_if_indexer_fails(self):
         self.app.put("/buckets/bid", headers=self.headers)

@@ -11,6 +11,7 @@ Changelog
 - Perform insertions and deletion in bulk for better efficiency (fixes #5)
 - Add setting to force index refresh on change (fixes #6)
 - Add heartbeat (fixes #3)
+- Delete indices when buckets and collections are deleted (fixes #21)
 
 **Bug fixes**
 
