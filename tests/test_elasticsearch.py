@@ -115,6 +115,12 @@ class SearchView(BaseWebTest, unittest.TestCase):
         result = resp.json
         assert len(result["hits"]["hits"]) == 0
 
+    def test_search_on_default_bucket_implicit_collection_returns_empty_list(self):
+        resp = self.app.post("/buckets/default/collections/yeah/search",
+                             headers=self.headers)
+        result = resp.json
+        assert len(result["hits"]["hits"]) == 0
+
 
 class PermissionsCheck(BaseWebTest, unittest.TestCase):
     def test_search_is_allowed_if_write_on_bucket(self):
