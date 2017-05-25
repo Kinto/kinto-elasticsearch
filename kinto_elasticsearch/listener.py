@@ -12,7 +12,8 @@ def on_collection_created(event):
     bucket_id = event.payload["bucket_id"]
     for created in event.impacted_records:
         collection_id = created["new"]["id"]
-        indexer.create_index(bucket_id, collection_id)
+        schema = created["new"].get("index:schema")
+        indexer.create_index(bucket_id, collection_id, schema=schema)
 
 
 def on_collection_deleted(event):

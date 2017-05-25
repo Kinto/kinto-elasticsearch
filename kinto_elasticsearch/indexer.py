@@ -18,11 +18,15 @@ class Indexer(object):
     def indexname(self, bucket_id, collection_id):
         return "{}-{}-{}".format(self.prefix, bucket_id, collection_id)
 
-    def create_index(self, bucket_id, collection_id):
+    def create_index(self, bucket_id, collection_id, schema=None):
         indexname = self.indexname(bucket_id, collection_id)
         # Only if necessary.
         if not self.client.indices.exists(index=indexname):
-            self.client.indices.create(index=indexname)
+            if schema:
+                body = {"mappings": {indexname: schema}}
+            else:
+                body = None
+            self.client.indices.create(index=indexname, body=body)
 
     def delete_index(self, bucket_id, collection_id=None):
         if collection_id is None:
