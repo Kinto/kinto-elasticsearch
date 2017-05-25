@@ -36,5 +36,5 @@ def get_search(request):
         results = indexer.search(bucket_id, collection_id, query)
     except elasticsearch.ElasticsearchException as e:
         logger.exception("Index query failed.")
-        results = {}
+        raise
     return results

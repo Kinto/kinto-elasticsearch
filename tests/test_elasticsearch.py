@@ -162,3 +162,90 @@ class PermissionsCheck(BaseWebTest, unittest.TestCase):
                            headers=headers)
 
         self.app.post("/buckets/bid/collections/cid/search", status=403, headers=headers)
+
+
+class SchemaSupport(BaseWebTest, unittest.TestCase):
+
+    schema = {
+      "title": "Builds",
+      "description": "Mozilla software builds.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+        },
+        "last_modified": {
+          "type": "number",
+        },
+        "build": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "title": "Build ID",
+              "description": "Build ID"
+            },
+            "date": {
+              "type": "string",
+              "title": "Build date",
+              "description": "i.e: 2017-05-11",
+              "pattern": "^(19|2[0-5])[0-9]{2}-((0[0-9])|(1[0-2]))-(([0-2][0-9])|(3[0-1]))$"
+            }
+          }
+        }
+      }
+    }
+
+    def setUp(self):
+        self.app.put("/buckets/bid", headers=self.headers)
+        body = {"data": {"schema": self.schema}}
+        self.app.put_json("/buckets/bid/collections/cid", body, headers=self.headers)
+        self.app.post_json("/buckets/bid/collections/cid/records",
+                           {"data": {"build": {"id": "abc", "date": "2017-05-24"}}},
+                           headers=self.headers)
+        self.app.post_json("/buckets/bid/collections/cid/records",
+                           {"data": {"build": {"id": "efg", "date": "2017-02-01"}}},
+                           headers=self.headers)
+
+    def get_mapping(self, bucket_id, collection_id):
+        indexer = self.app.app.registry.indexer
+        indexname = indexer.indexname(bucket_id, collection_id)
+        index_mapping = indexer.client.indices.get_mapping(indexname)
+        return index_mapping[indexname]["mappings"][indexname]
+
+    def test_index_has_mapping_if_collection_has_schema(self):
+        mapping = self.get_mapping("bid", "cid")
+        assert mapping == {
+            "properties": {
+                "id": {"type": "text"},
+                "last_modified": {"type": "double"},
+                "build": {
+                    "properties": {
+                        "date": {"type": "text"},
+                        "id": {"type": "text"}
+                    }
+                }
+            }
+        }
+
+    def test_can_search_for_subproperties(self):
+        body = {
+            "query": {
+                "bool" : {
+                    "must" : {
+                        "term" : { "build.id" : "abc" }
+                    }
+                }
+            }
+        }
+        resp = self.app.post_json("/buckets/bid/collections/cid/search", body,
+                                  headers=self.headers)
+        result = resp.json
+        assert len(result["hits"]["hits"]) == 1
+        assert result["hits"]["hits"][0]["_source"]["build"]["id"] == "abc"
+
+    def test_mapping_is_updated_on_collection_update(self):
+        pass
+
+    def test_schema_can_contain_references(self):
+        pass

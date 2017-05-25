@@ -11,6 +11,7 @@ with open('CHANGELOG.rst') as history_file:
 
 requirements = [
     'elasticsearch',
+    'domapping',  # XXX: validate more thoroughly.
     'kinto>=6.0.0'
 ]
 
