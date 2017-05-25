@@ -244,6 +244,26 @@ class SchemaSupport(BaseWebTest, unittest.TestCase):
         assert len(result["hits"]["hits"]) == 1
         assert result["hits"]["hits"][0]["_source"]["build"]["id"] == "abc"
 
+    def test_can_aggregate_values(self):
+        body = {
+          "aggs" : {
+            "build_dates" : {
+              "terms": {
+                "field" : "build.id",
+                "size" : 1000
+              }
+            }
+          }
+        }
+        resp = self.app.post_json("/buckets/bid/collections/cid/search", body,
+                                  headers=self.headers)
+        result = resp.json
+        print(result)
+        assert result["aggregations"]["build_dates"]["buckets"] == [
+            {"key": "abc", "doc_count": 1},
+            {"key": "efg", "doc_count": 1},
+        ]
+
     def test_mapping_is_updated_on_collection_update(self):
         pass
 
