@@ -43,7 +43,6 @@ def search_view(request, **kwargs):
         raise response
     except elasticsearch.ElasticsearchException as e:
         logger.exception("Index query failed.")
-        results = {}
     return results
 
 

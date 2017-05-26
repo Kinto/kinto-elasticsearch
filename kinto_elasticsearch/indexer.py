@@ -18,11 +18,13 @@ class Indexer(object):
     def indexname(self, bucket_id, collection_id):
         return "{}-{}-{}".format(self.prefix, bucket_id, collection_id)
 
-    def create_index(self, bucket_id, collection_id):
+    def create_index(self, bucket_id, collection_id, schema=None):
         indexname = self.indexname(bucket_id, collection_id)
         # Only if necessary.
         if not self.client.indices.exists(index=indexname):
-            self.client.indices.create(index=indexname)
+            mapping = jsonschema_to_mapping(schema)
+            body = {"mappings": {indexname: mapping}}
+            self.client.indices.create(index=indexname, body=body)
 
     def delete_index(self, bucket_id, collection_id=None):
         if collection_id is None:
@@ -101,3 +103,18 @@ def load_from_config(config):
     force_refresh = asbool(settings.get('elasticsearch.force_refresh', 'false'))
     indexer = Indexer(hosts=hosts, prefix=prefix, force_refresh=force_refresh)
     return indexer
+
+
+def jsonschema_to_mapping(json_schema):
+    if json_schema is None:
+        return None
+
+    # XXX: domapping was a quick way to get started, but not sure if it's the
+    # lightest solution.
+    # See https://github.com/inveniosoftware/domapping/issues/created_by/leplatrem
+    from domapping.mapping import ElasticMappingGeneratorConfig, schema_to_mapping
+
+    root_url = json_schema.get("id", "")
+    mapping = schema_to_mapping(json_schema, root_url, {}, ElasticMappingGeneratorConfig())
+    mapping = {"properties": mapping["properties"]}
+    return mapping
