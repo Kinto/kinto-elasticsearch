@@ -13,6 +13,7 @@ Changelog
 - Add heartbeat (fixes #3)
 - Delete indices when buckets and collections are deleted (fixes #21)
 - Support quick search from querystring (fixes #34)
+- Support defining mapping from the ``index:schema`` property in the collection metadata (ref #8)
 
 **Bug fixes**
 
