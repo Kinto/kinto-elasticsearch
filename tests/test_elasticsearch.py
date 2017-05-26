@@ -97,9 +97,11 @@ class ParentDeletion(BaseWebTest, unittest.TestCase):
 
 
 class SearchView(BaseWebTest, unittest.TestCase):
-    def test_search_response_is_empty_if_indexer_fails(self):
+    def setUp(self):
         self.app.put("/buckets/bid", headers=self.headers)
         self.app.put("/buckets/bid/collections/cid", headers=self.headers)
+
+    def test_search_response_is_empty_if_indexer_fails(self):
         with mock.patch("kinto_elasticsearch.indexer.Indexer.search",
                         side_effect=elasticsearch.ElasticsearchException):
             resp = self.app.post("/buckets/bid/collections/cid/search",
@@ -108,12 +110,31 @@ class SearchView(BaseWebTest, unittest.TestCase):
             assert result == {}
 
     def test_search_on_empty_collection_returns_empty_list(self):
-        self.app.put("/buckets/bid", headers=self.headers)
-        self.app.put("/buckets/bid/collections/cid", headers=self.headers)
         resp = self.app.post("/buckets/bid/collections/cid/search",
                              headers=self.headers)
         result = resp.json
         assert len(result["hits"]["hits"]) == 0
+
+    def test_querystring_search_is_supported(self):
+        self.app.post_json("/buckets/bid/collections/cid/records",
+                           {"data": {"age": 12}}, headers=self.headers)
+        self.app.post_json("/buckets/bid/collections/cid/records",
+                           {"data": {"age": 21}}, headers=self.headers)
+        resp = self.app.get("/buckets/bid/collections/cid/search?q=age:<15",
+                             headers=self.headers)
+        result = resp.json
+        assert len(result["hits"]["hits"]) == 1
+        assert result["hits"]["hits"][0]["_source"]["age"] == 12
+
+    def test_empty_querystring_returns_all_results(self):
+        self.app.post_json("/buckets/bid/collections/cid/records",
+                           {"data": {"age": 12}}, headers=self.headers)
+        self.app.post_json("/buckets/bid/collections/cid/records",
+                           {"data": {"age": 21}}, headers=self.headers)
+        resp = self.app.get("/buckets/bid/collections/cid/search",
+                             headers=self.headers)
+        result = resp.json
+        assert len(result["hits"]["hits"]) == 2
 
 
 class PermissionsCheck(BaseWebTest, unittest.TestCase):
