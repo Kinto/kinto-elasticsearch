@@ -4,6 +4,8 @@ import elasticsearch
 from kinto.core import authorization
 from kinto.core import Service
 from kinto.core import utils
+from kinto.core.errors import http_error, ERRORS
+from pyramid import httpexceptions
 
 
 logger = logging.getLogger(__name__)
@@ -31,6 +33,14 @@ def search_view(request, **kwargs):
     indexer = request.registry.indexer
     try:
         results = indexer.search(bucket_id, collection_id, **kwargs)
+    except elasticsearch.RequestError as e:
+        message = e.info["error"]["reason"]
+        details = e.info["error"]["root_cause"][0]
+        response = http_error(httpexceptions.HTTPBadRequest(),
+                              errno=ERRORS.INVALID_PARAMETERS,
+                              message=message,
+                              details=details)
+        raise response
     except elasticsearch.ElasticsearchException as e:
         logger.exception("Index query failed.")
         results = {}
