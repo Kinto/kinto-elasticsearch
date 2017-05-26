@@ -33,7 +33,14 @@ def search_view(request, **kwargs):
     indexer = request.registry.indexer
     try:
         results = indexer.search(bucket_id, collection_id, **kwargs)
+
+    except elasticsearch.NotFoundError as e:
+        # If plugin was enabled after the creation of the collection.
+        indexer.create_index(bucket_id, collection_id)
+        results = indexer.search(bucket_id, collection_id, **kwargs)
+
     except elasticsearch.RequestError as e:
+        # Malformed query.
         message = e.info["error"]["reason"]
         details = e.info["error"]["root_cause"][0]
         response = http_error(httpexceptions.HTTPBadRequest(),
@@ -41,9 +48,12 @@ def search_view(request, **kwargs):
                               message=message,
                               details=details)
         raise response
+
     except elasticsearch.ElasticsearchException as e:
+        # General failure.
         logger.exception("Index query failed.")
         results = {}
+
     return results
 
 
