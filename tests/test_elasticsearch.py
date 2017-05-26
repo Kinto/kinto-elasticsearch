@@ -216,7 +216,8 @@ class SchemaSupport(BaseWebTest, unittest.TestCase):
         indexer = self.app.app.registry.indexer
         indexname = indexer.indexname(bucket_id, collection_id)
         index_mapping = indexer.client.indices.get_mapping(indexname)
-        return index_mapping[indexname]["mappings"][indexname]
+        mappings = index_mapping[indexname]["mappings"]
+        return mappings.get(indexname, {})
 
     def test_index_has_mapping_if_collection_has_schema(self):
         mapping = self.get_mapping("bid", "cid")
@@ -232,6 +233,18 @@ class SchemaSupport(BaseWebTest, unittest.TestCase):
 
         mapping = self.get_mapping("bid", "cid")
         assert mapping["properties"]["build"]["properties"]["id"]["ignore_above"] == 12
+
+    def test_mapping_is_created_when_index_metadata_is_added(self):
+        self.app.put("/buckets/bid/collections/cid2", headers=self.headers)
+        mapping = self.get_mapping("bid", "cid2")
+        assert "build" not in mapping.get("properties", {})
+
+        self.app.patch_json("/buckets/bid/collections/cid2",
+                            {"data": {"index:schema": self.schema}},
+                            headers=self.headers)
+
+        mapping = self.get_mapping("bid", "cid2")
+        assert "build" in mapping["properties"]
 
     def test_mapping_is_preserved_when_index_metadata_is_removed(self):
         self.app.put_json("/buckets/bid/collections/cid",

@@ -27,6 +27,8 @@ class Indexer(object):
             else:
                 body = None
             self.client.indices.create(index=indexname, body=body)
+        else:
+            self.update_index(bucket_id, collection_id, schema)
 
     def update_index(self, bucket_id, collection_id, schema=None):
         indexname = self.indexname(bucket_id, collection_id)
