@@ -28,6 +28,14 @@ class Indexer(object):
                 body = None
             self.client.indices.create(index=indexname, body=body)
 
+    def update_index(self, bucket_id, collection_id, schema=None):
+        indexname = self.indexname(bucket_id, collection_id)
+        if schema is None:
+            schema = {"properties": {}}
+        self.client.indices.put_mapping(index=indexname,
+                                        doc_type=indexname,
+                                        body=schema)
+
     def delete_index(self, bucket_id, collection_id=None):
         if collection_id is None:
             collection_id = "*"

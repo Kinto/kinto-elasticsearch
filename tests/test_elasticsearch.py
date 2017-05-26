@@ -1,3 +1,4 @@
+import copy
 import mock
 import time
 import unittest
@@ -219,18 +220,26 @@ class SchemaSupport(BaseWebTest, unittest.TestCase):
 
     def test_index_has_mapping_if_collection_has_schema(self):
         mapping = self.get_mapping("bid", "cid")
-        assert mapping == {
-            "properties": {
-                "id": {"type": "keyword"},
-                "last_modified": {"type": "long"},
-                "build": {
-                    "properties": {
-                        "date": {"type": "date", "format": "strict_date"},
-                        "id": {"type": "keyword"}
-                    }
-                }
-            }
-        }
+        assert sorted(mapping["properties"].keys()) == ["build", "id", "last_modified"]
+
+    def test_mapping_is_updated_on_collection_update(self):
+        new_schema = copy.deepcopy(self.schema)
+        new_schema["properties"]["build"]["properties"]["id"]["ignore_above"] = 12
+
+        self.app.patch_json("/buckets/bid/collections/cid",
+                            {"data": {"index:schema": new_schema}},
+                            headers=self.headers)
+
+        mapping = self.get_mapping("bid", "cid")
+        assert mapping["properties"]["build"]["properties"]["id"]["ignore_above"] == 12
+
+    def test_mapping_is_preserved_when_index_metadata_is_removed(self):
+        self.app.put_json("/buckets/bid/collections/cid",
+                          {"data": {}},
+                          headers=self.headers)
+
+        mapping = self.get_mapping("bid", "cid")
+        assert "build" in mapping["properties"]
 
     def test_can_search_for_subproperties(self):
         body = {
@@ -266,6 +275,3 @@ class SchemaSupport(BaseWebTest, unittest.TestCase):
             {"key": "abc", "doc_count": 1},
             {"key": "efg", "doc_count": 1},
         ]
-
-    def test_mapping_is_updated_on_collection_update(self):
-        pass
