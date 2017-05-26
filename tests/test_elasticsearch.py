@@ -193,7 +193,7 @@ class SchemaSupport(BaseWebTest, unittest.TestCase):
             "last_modified": {"type": "long"},
             "build": {
                 "properties": {
-                    "date": {"type": "date"},
+                    "date": {"type": "date", "format": "strict_date"},
                     "id": {"type": "keyword"}
                 }
             }
@@ -225,7 +225,7 @@ class SchemaSupport(BaseWebTest, unittest.TestCase):
                 "last_modified": {"type": "long"},
                 "build": {
                     "properties": {
-                        "date": {"type": "date"},
+                        "date": {"type": "date", "format": "strict_date"},
                         "id": {"type": "keyword"}
                     }
                 }
