@@ -1,6 +1,13 @@
 language: python
 python: 3.5
 sudo: false
+addons:
+  apt:
+    sources:
+      - elasticsearch-5.x
+    packages:
+    - oracle-java8-set-default
+    - elasticsearch
 services:
   - elasticsearch
 env:
