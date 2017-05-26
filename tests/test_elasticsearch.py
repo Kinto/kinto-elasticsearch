@@ -66,6 +66,11 @@ class PostActivation(BaseWebTest, unittest.TestCase):
                             headers=self.headers)
         assert len(resp.json["data"]) == 1
 
+        resp = self.app.get("/buckets/bid/collections/cid/search",
+                            headers=self.headers)
+        results = resp.json
+        assert len(results["hits"]["hits"]) == 0
+
     def test_record_creation_does_not_fail(self):
         self.app.post_json("/buckets/bid/collections/cid/records",
                            {"data": {"after": "indexing"}},
