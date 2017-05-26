@@ -26,6 +26,8 @@ def includeme(config):
     config.add_subscriber(listener.on_server_flushed, ServerFlushed)
     config.add_subscriber(listener.on_collection_created, AfterResourceChanged,
                           for_resources=("collection",), for_actions=("create",))
+    config.add_subscriber(listener.on_collection_updated, AfterResourceChanged,
+                          for_resources=("collection",), for_actions=("update",))
     config.add_subscriber(listener.on_collection_deleted, AfterResourceChanged,
                           for_resources=("collection",), for_actions=("delete",))
     config.add_subscriber(listener.on_bucket_deleted, AfterResourceChanged,

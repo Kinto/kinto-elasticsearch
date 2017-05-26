@@ -12,7 +12,22 @@ def on_collection_created(event):
     bucket_id = event.payload["bucket_id"]
     for created in event.impacted_records:
         collection_id = created["new"]["id"]
-        indexer.create_index(bucket_id, collection_id)
+        schema = created["new"].get("index:schema")
+        indexer.create_index(bucket_id, collection_id, schema=schema)
+
+
+def on_collection_updated(event):
+    indexer = event.request.registry.indexer
+    bucket_id = event.payload["bucket_id"]
+    for updated in event.impacted_records:
+        collection_id = updated["new"]["id"]
+        old_schema = updated["old"].get("index:schema")
+        new_schema = updated["new"].get("index:schema")
+        # Create if there was no index before.
+        if old_schema is None and new_schema is not None:
+            indexer.create_index(bucket_id, collection_id, schema=new_schema)
+        elif old_schema != new_schema:
+            indexer.update_index(bucket_id, collection_id, schema=new_schema)
 
 
 def on_collection_deleted(event):

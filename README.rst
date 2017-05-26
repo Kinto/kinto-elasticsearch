@@ -126,6 +126,38 @@ Or an advanced search using request body:
     }
 
 
+Custom index mapping
+--------------------
+
+By default, ElasticSearch infers the data types from the indexed records.
+
+But it's possible to define the index mappings (ie. schema) from the collection metadata,
+in the ``index:schema`` property:
+
+.. code-block:: bash
+
+    $ echo '{
+      "data": {
+        "index:schema": {
+          "properties": {
+            "id": {"type": "keyword"},
+            "last_modified": {"type": "long"},
+            "build": {
+              "properties": {
+                  "date": {"type": "date", "format": "strict_date"},
+                  "id": {"type": "keyword"}
+              }
+            }
+          }
+        }
+      }
+    }' | http PATCH "http://localhost:8888/v1/buckets/blog/collections/builds" --auth token:admin-token --verbose
+
+Refer to ElasticSearch official documentation for more information about mappings.
+
+See also, `domapping <https://github.com/inveniosoftware/domapping/>`_ a CLI tool to convert JSON schemas to ElasticSearch mappings.
+
+
 Running the tests
 =================
 

@@ -1,3 +1,4 @@
+import copy
 import mock
 import time
 import unittest
@@ -197,3 +198,107 @@ class PermissionsCheck(BaseWebTest, unittest.TestCase):
                            headers=headers)
 
         self.app.post("/buckets/bid/collections/cid/search", status=403, headers=headers)
+
+
+class SchemaSupport(BaseWebTest, unittest.TestCase):
+
+    schema = {
+        "properties": {
+            "id": {"type": "keyword"},
+            "last_modified": {"type": "long"},
+            "build": {
+                "properties": {
+                    "date": {"type": "date", "format": "strict_date"},
+                    "id": {"type": "keyword"}
+                }
+            }
+        }
+    }
+
+    def setUp(self):
+        self.app.put("/buckets/bid", headers=self.headers)
+        body = {"data": {"index:schema": self.schema}}
+        self.app.put_json("/buckets/bid/collections/cid", body, headers=self.headers)
+        self.app.post_json("/buckets/bid/collections/cid/records",
+                           {"data": {"build": {"id": "abc", "date": "2017-05-24"}}},
+                           headers=self.headers)
+        self.app.post_json("/buckets/bid/collections/cid/records",
+                           {"data": {"build": {"id": "efg", "date": "2017-02-01"}}},
+                           headers=self.headers)
+
+    def get_mapping(self, bucket_id, collection_id):
+        indexer = self.app.app.registry.indexer
+        indexname = indexer.indexname(bucket_id, collection_id)
+        index_mapping = indexer.client.indices.get_mapping(indexname)
+        mappings = index_mapping[indexname]["mappings"]
+        return mappings.get(indexname, {})
+
+    def test_index_has_mapping_if_collection_has_schema(self):
+        mapping = self.get_mapping("bid", "cid")
+        assert sorted(mapping["properties"].keys()) == ["build", "id", "last_modified"]
+
+    def test_mapping_is_updated_on_collection_update(self):
+        new_schema = copy.deepcopy(self.schema)
+        new_schema["properties"]["build"]["properties"]["id"]["ignore_above"] = 12
+
+        self.app.patch_json("/buckets/bid/collections/cid",
+                            {"data": {"index:schema": new_schema}},
+                            headers=self.headers)
+
+        mapping = self.get_mapping("bid", "cid")
+        assert mapping["properties"]["build"]["properties"]["id"]["ignore_above"] == 12
+
+    def test_mapping_is_created_when_index_metadata_is_added(self):
+        self.app.put("/buckets/bid/collections/cid2", headers=self.headers)
+        mapping = self.get_mapping("bid", "cid2")
+        assert "build" not in mapping.get("properties", {})
+
+        self.app.patch_json("/buckets/bid/collections/cid2",
+                            {"data": {"index:schema": self.schema}},
+                            headers=self.headers)
+
+        mapping = self.get_mapping("bid", "cid2")
+        assert "build" in mapping["properties"]
+
+    def test_mapping_is_preserved_when_index_metadata_is_removed(self):
+        self.app.put_json("/buckets/bid/collections/cid",
+                          {"data": {}},
+                          headers=self.headers)
+
+        mapping = self.get_mapping("bid", "cid")
+        assert "build" in mapping["properties"]
+
+    def test_can_search_for_subproperties(self):
+        body = {
+            "query": {
+                "bool" : {
+                    "must" : {
+                        "term" : { "build.id" : "abc" }
+                    }
+                }
+            }
+        }
+        resp = self.app.post_json("/buckets/bid/collections/cid/search", body,
+                                  headers=self.headers)
+        result = resp.json
+        assert len(result["hits"]["hits"]) == 1
+        assert result["hits"]["hits"][0]["_source"]["build"]["id"] == "abc"
+
+    def test_can_aggregate_values(self):
+        body = {
+          "aggs" : {
+            "build_dates" : {
+              "terms": {
+                "field" : "build.id",
+                "size" : 1000
+              }
+            }
+          }
+        }
+        resp = self.app.post_json("/buckets/bid/collections/cid/search", body,
+                                  headers=self.headers)
+        result = resp.json
+        assert result["aggregations"]["build_dates"]["buckets"] == [
+            {"key": "abc", "doc_count": 1},
+            {"key": "efg", "doc_count": 1},
+        ]
