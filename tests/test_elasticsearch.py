@@ -61,15 +61,21 @@ class PostActivation(BaseWebTest, unittest.TestCase):
                       {"data": {"before": "indexing"}},
                       headers=self.headers)
 
-    def test_search_does_not_fail_after_plugin_activation(self):
+    def test_search_does_not_fail(self):
         resp = self.app.get("/buckets/bid/collections/cid/records",
                             headers=self.headers)
         assert len(resp.json["data"]) == 1
 
+    def test_record_creation_does_not_fail(self):
+        self.app.post_json("/buckets/bid/collections/cid/records",
+                           {"data": {"after": "indexing"}},
+                           headers=self.headers)
+
         resp = self.app.get("/buckets/bid/collections/cid/search",
                             headers=self.headers)
         results = resp.json
-        assert len(results["hits"]["hits"]) == 0
+        assert len(results["hits"]["hits"]) == 1
+        assert results["hits"]["hits"][0]["_source"]["after"] == "indexing"
 
 
 class RecordIndexing(BaseWebTest, unittest.TestCase):
