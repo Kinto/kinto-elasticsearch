@@ -196,6 +196,44 @@ class SearchView(BaseWebTest, unittest.TestCase):
         assert len(result["hits"]["hits"]) == 2
 
 
+class LimitedResults(BaseWebTest, unittest.TestCase):
+    def get_app(self, settings):
+        app = self.make_app(settings=settings)
+        app.put("/buckets/bid", headers=self.headers)
+        app.put("/buckets/bid/collections/cid", headers=self.headers)
+        requests = [{
+            "method": "POST",
+            "path": "/buckets/bid/collections/cid/records",
+            "body": {"data": {"age": i}}
+        } for i in range(5)]
+        app.post_json("/batch", {"requests": requests}, headers=self.headers)
+        return app
+
+    def test_the_number_of_responses_is_limited_by_paginate_by_setting(self):
+        app = self.get_app({"paginate_by": 2})
+        resp = app.get("/buckets/bid/collections/cid/search", headers=self.headers)
+        result = resp.json
+        assert len(result["hits"]["hits"]) == 2
+
+    def test_the_number_of_responses_is_limited_by_max_fetch_size_setting(self):
+        app = self.get_app({"storage_max_fetch_size": 2})
+        resp = app.get("/buckets/bid/collections/cid/search", headers=self.headers)
+        result = resp.json
+        assert len(result["hits"]["hits"]) == 2
+
+    def test_the_number_of_responses_is_limited_by_smaller_limit(self):
+        app = self.get_app({"paginate_by": 4, "storage_max_fetch_size": 2})
+        resp = app.get("/buckets/bid/collections/cid/search", headers=self.headers)
+        result = resp.json
+        assert len(result["hits"]["hits"]) == 2
+
+    def test_the_number_of_responses_is_limited_by_only_defined_limit(self):
+        app = self.get_app({"paginate_by": 0, "storage_max_fetch_size": 2})
+        resp = app.get("/buckets/bid/collections/cid/search", headers=self.headers)
+        result = resp.json
+        assert len(result["hits"]["hits"]) == 2
+
+
 class PermissionsCheck(BaseWebTest, unittest.TestCase):
     def test_search_is_allowed_if_write_on_bucket(self):
         body = {"permissions": {"write": ["system.Everyone"]}}
