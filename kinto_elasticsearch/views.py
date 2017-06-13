@@ -29,7 +29,7 @@ def search_view(request, **kwargs):
     bucket_id = request.matchdict['bucket_id']
     collection_id = request.matchdict['collection_id']
 
-    # # Limit the number of results to return, based on existing Kinto settings.
+    # Limit the number of results to return, based on existing Kinto settings.
     paginate_by = request.registry.settings.get("paginate_by")
     max_fetch_size = request.registry.settings["storage_max_fetch_size"]
     if paginate_by is None or paginate_by <= 0:
