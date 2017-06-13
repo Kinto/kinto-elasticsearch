@@ -5,8 +5,9 @@ Changelog
 0.2.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+**Bug fixes**
 
+- Limit the number of results returned by default (fixes #45)
 
 0.1.0 (2017-05-26)
 ------------------

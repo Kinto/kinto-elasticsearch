@@ -29,6 +29,13 @@ def search_view(request, **kwargs):
     bucket_id = request.matchdict['bucket_id']
     collection_id = request.matchdict['collection_id']
 
+    # Limit the number of results to return, based on existing Kinto settings.
+    paginate_by = request.registry.settings.get("paginate_by")
+    max_fetch_size = request.registry.settings["storage_max_fetch_size"]
+    if paginate_by is None or paginate_by <= 0:
+        paginate_by = max_fetch_size
+    kwargs.setdefault("size", min(paginate_by, max_fetch_size))
+
     # Access indexer from views using registry.
     indexer = request.registry.indexer
     try:
