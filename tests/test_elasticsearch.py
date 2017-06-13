@@ -384,3 +384,11 @@ class SchemaSupport(BaseWebTest, unittest.TestCase):
             {"key": "abc", "doc_count": 1},
             {"key": "efg", "doc_count": 1},
         ]
+
+    def test_search_parse_exception_returns_400(self):
+        e = elasticsearch.RequestError('', '',
+                                       {"error": "Could not find aggregator type"})
+        with mock.patch("kinto_elasticsearch.indexer.Indexer.search",
+                        side_effect=e):
+            self.app.post_json("/buckets/bid/collections/cid/search",
+                               headers=self.headers, status=400)

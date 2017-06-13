@@ -48,8 +48,12 @@ def search_view(request, **kwargs):
 
     except elasticsearch.RequestError as e:
         # Malformed query.
-        message = e.info["error"]["reason"]
-        details = e.info["error"]["root_cause"][0]
+        if isinstance(e.info["error"], dict):
+            message = e.info["error"]["reason"]
+            details = e.info["error"]["root_cause"][0]
+        else:
+            message = e.info["error"]
+            details = None
         response = http_error(httpexceptions.HTTPBadRequest(),
                               errno=ERRORS.INVALID_PARAMETERS,
                               message=message,

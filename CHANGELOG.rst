@@ -8,6 +8,8 @@ Changelog
 **Bug fixes**
 
 - Limit the number of results returned by default (fixes #45)
+- Fix crash on search parse exceptions (fixes #44)
+
 
 0.1.0 (2017-05-26)
 ------------------
