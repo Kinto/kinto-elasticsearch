@@ -1,3 +1,4 @@
+import json
 import logging
 
 import elasticsearch
@@ -34,7 +35,17 @@ def search_view(request, **kwargs):
     max_fetch_size = request.registry.settings["storage_max_fetch_size"]
     if paginate_by is None or paginate_by <= 0:
         paginate_by = max_fetch_size
-    kwargs.setdefault("size", min(paginate_by, max_fetch_size))
+    configured = min(paginate_by, max_fetch_size)
+    # If the size is specified in query, ignore it if larger than setting.
+    specified = None
+    if "body" in kwargs:
+        try:
+            body = json.loads(kwargs["body"].decode("utf-8"))
+            specified = body.get("size")
+        except json.decoder.JSONDecodeError:
+            pass
+    if specified is None or specified > configured:
+        kwargs.setdefault("size", configured)
 
     # Access indexer from views using registry.
     indexer = request.registry.indexer
