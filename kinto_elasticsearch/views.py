@@ -39,8 +39,11 @@ def search_view(request, **kwargs):
     # If the size is specified in query, ignore it if larger than setting.
     specified = None
     if "body" in kwargs:
-        body = json.loads(kwargs["body"].decode("utf-8"))
-        specified = body.get("size")
+        try:
+            body = json.loads(kwargs["body"].decode("utf-8"))
+            specified = body.get("size")
+        except json.decoder.JSONDecodeError:
+            pass
     if specified is None or specified > configured:
         kwargs.setdefault("size", configured)
 
