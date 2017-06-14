@@ -233,6 +233,28 @@ class LimitedResults(BaseWebTest, unittest.TestCase):
         result = resp.json
         assert len(result["hits"]["hits"]) == 2
 
+    def test_size_specified_in_query_is_taken_into_account(self):
+        app = self.get_app({"paginate_by": 3})
+        query = {
+            "from": 0, "size" : 2,
+            "query": {"match_all": {}}
+        }
+        resp = app.post_json("/buckets/bid/collections/cid/search", query,
+                             headers=self.headers)
+        result = resp.json
+        assert len(result["hits"]["hits"]) == 2
+
+    def test_size_specified_in_query_is_caped_by_setting(self):
+        app = self.get_app({"paginate_by": 3})
+        query = {
+            "size" : 4,
+            "query": {"match_all": {}}
+        }
+        resp = app.post_json("/buckets/bid/collections/cid/search", query,
+                             headers=self.headers)
+        result = resp.json
+        assert len(result["hits"]["hits"]) == 3
+
 
 class PermissionsCheck(BaseWebTest, unittest.TestCase):
     def test_search_is_allowed_if_write_on_bucket(self):

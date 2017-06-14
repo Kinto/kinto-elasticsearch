@@ -5,7 +5,9 @@ Changelog
 0.3.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+**Bug fixes**
+
+- Fix the number of results when specified in query (ref #45)
 
 
 0.2.0 (2017-06-13)
