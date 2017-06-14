@@ -22,7 +22,7 @@ test_requirements = [
 
 setup(
     name='kinto-elasticsearch',
-    version='0.3.0.dev0',
+    version='0.2.1',
     description="Index and search records using ElasticSearch.",
     long_description=readme + '\n\n' + history,
     author='Mozilla Services',
