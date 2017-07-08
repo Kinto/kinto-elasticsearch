@@ -1,10 +1,8 @@
 import copy
 import mock
-import time
 import unittest
 
 import elasticsearch
-from kinto.core import utils as core_utils
 from kinto.core.testing import get_user_headers
 
 from kinto_elasticsearch import __version__ as elasticsearch_version
@@ -123,9 +121,9 @@ class ParentDeletion(BaseWebTest, unittest.TestCase):
     def setUp(self):
         self.app.put("/buckets/bid", headers=self.headers)
         self.app.put("/buckets/bid/collections/cid", headers=self.headers)
-        resp = self.app.post_json("/buckets/bid/collections/cid/records",
-                                  {"data": {"hello": "world"}},
-                                  headers=self.headers)
+        self.app.post_json("/buckets/bid/collections/cid/records",
+                           {"data": {"hello": "world"}},
+                           headers=self.headers)
 
     def index_exists(self, bucket_id, collection_id):
         indexer = self.app.app.registry.indexer
@@ -180,7 +178,7 @@ class SearchView(BaseWebTest, unittest.TestCase):
         self.app.post_json("/buckets/bid/collections/cid/records",
                            {"data": {"age": 21}}, headers=self.headers)
         resp = self.app.get("/buckets/bid/collections/cid/search?q=age:<15",
-                             headers=self.headers)
+                            headers=self.headers)
         result = resp.json
         assert len(result["hits"]["hits"]) == 1
         assert result["hits"]["hits"][0]["_source"]["age"] == 12
@@ -191,7 +189,7 @@ class SearchView(BaseWebTest, unittest.TestCase):
         self.app.post_json("/buckets/bid/collections/cid/records",
                            {"data": {"age": 21}}, headers=self.headers)
         resp = self.app.get("/buckets/bid/collections/cid/search",
-                             headers=self.headers)
+                            headers=self.headers)
         result = resp.json
         assert len(result["hits"]["hits"]) == 2
 
@@ -236,7 +234,7 @@ class LimitedResults(BaseWebTest, unittest.TestCase):
     def test_size_specified_in_query_is_taken_into_account(self):
         app = self.get_app({"paginate_by": 3})
         query = {
-            "from": 0, "size" : 2,
+            "from": 0, "size": 2,
             "query": {"match_all": {}}
         }
         resp = app.post_json("/buckets/bid/collections/cid/search", query,
@@ -247,7 +245,7 @@ class LimitedResults(BaseWebTest, unittest.TestCase):
     def test_size_specified_in_query_is_caped_by_setting(self):
         app = self.get_app({"paginate_by": 3})
         query = {
-            "size" : 4,
+            "size": 4,
             "query": {"match_all": {}}
         }
         resp = app.post_json("/buckets/bid/collections/cid/search", query,
@@ -375,9 +373,9 @@ class SchemaSupport(BaseWebTest, unittest.TestCase):
     def test_can_search_for_subproperties(self):
         body = {
             "query": {
-                "bool" : {
-                    "must" : {
-                        "term" : { "build.id" : "abc" }
+                "bool": {
+                    "must": {
+                        "term": {"build.id": "abc"}
                     }
                 }
             }
@@ -390,11 +388,11 @@ class SchemaSupport(BaseWebTest, unittest.TestCase):
 
     def test_can_aggregate_values(self):
         body = {
-          "aggs" : {
-            "build_dates" : {
+          "aggs": {
+            "build_dates": {
               "terms": {
-                "field" : "build.id",
-                "size" : 1000
+                "field": "build.id",
+                "size": 1000
               }
             }
           }
