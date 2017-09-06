@@ -115,6 +115,15 @@ class RecordIndexing(BaseWebTest, unittest.TestCase):
                                    headers=self.headers)
             assert r.status_code == 201
 
+    def test_a_statsd_timer_is_used_if_configured(self):
+        statsd_client = self.app.app.registry.statsd._client
+        with mock.patch.object(statsd_client, 'timing') as mocked:
+            self.app.post_json("/buckets/bid/collections/cid/records",
+                               {"data": {"hola": "mundo"}},
+                               headers=self.headers)
+            timers = set(c[0][0] for c in mocked.call_args_list)
+            assert 'plugins.elasticsearch.index' in timers
+
 
 class ParentDeletion(BaseWebTest, unittest.TestCase):
 
