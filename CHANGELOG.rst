@@ -5,8 +5,9 @@ Changelog
 0.3.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+**New features**
 
+- Add StatsD timer to measure E/S indexation (fixes #54)
 
 0.2.1 (2017-06-14)
 ------------------

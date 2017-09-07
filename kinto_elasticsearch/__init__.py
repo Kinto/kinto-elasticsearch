@@ -21,8 +21,17 @@ def includeme(config):
     # Activate end-points.
     config.scan("kinto_elasticsearch.views")
 
-    config.add_subscriber(listener.on_record_changed, AfterResourceChanged,
+    on_record_changed_listener = listener.on_record_changed
+
+    # If StatsD is enabled, monitor execution time of listener.
+    if config.registry.statsd:
+        statsd_client = config.registry.statsd
+        key = 'plugins.elasticsearch.index'
+        on_record_changed_listener = statsd_client.timer(key)(on_record_changed_listener)
+
+    config.add_subscriber(on_record_changed_listener, AfterResourceChanged,
                           for_resources=("record",))
+
     config.add_subscriber(listener.on_server_flushed, ServerFlushed)
     config.add_subscriber(listener.on_collection_created, AfterResourceChanged,
                           for_resources=("collection",), for_actions=("create",))
