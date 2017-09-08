@@ -1,4 +1,6 @@
 import argparse
+import elasticsearch
+import logging
 import sys
 
 from pyramid.paster import bootstrap
@@ -9,6 +11,8 @@ from kinto.core.utils import COMPARISON
 
 
 DEFAULT_CONFIG_FILE = 'config/kinto.ini'
+
+logger = logging.getLogger(__package__)
 
 
 def main(cli_args=None):
