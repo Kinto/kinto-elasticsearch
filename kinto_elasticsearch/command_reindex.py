@@ -41,8 +41,8 @@ def main(cli_args=None):
     try:
         indexer = registry.indexer
     except AttributeError:
-        print("kinto-elasticsearch not available.")
-        return 22
+        logger.error("kinto-elasticsearch not available.")
+        return 62
 
     bucket_id = args.bucket
     collection_id = args.collection
@@ -51,13 +51,13 @@ def main(cli_args=None):
     try:
         schema = get_index_schema(registry.storage, bucket_id, collection_id)
     except RecordNotFoundError:
-        print("No collection '%s' in bucket '%s'" % (collection_id, bucket_id))
-        return 32
+        logger.error("No collection '%s' in bucket '%s'" % (collection_id, bucket_id))
+        return 63
 
     # Give up if collection has no index mapping.
     if schema is None:
-        print("No `index:schema` attribute found in collection metadata.")
-        return 42
+        logger.error("No `index:schema` attribute found in collection metadata.")
+        return 64
 
     # XXX: Are you sure?
     recreate_index(indexer, bucket_id, collection_id, schema)

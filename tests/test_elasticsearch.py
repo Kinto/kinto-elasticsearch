@@ -40,15 +40,6 @@ class PluginSetup(BaseWebTest, unittest.TestCase):
 
 class PostActivation(BaseWebTest, unittest.TestCase):
 
-    @classmethod
-    def get_app_settings(cls, extras=None):
-        settings = super().get_app_settings(extras)
-        settings['storage_backend'] = 'kinto.core.storage.postgresql'
-        settings['storage_url'] = 'postgres://postgres:postgres@localhost:5432/postgres'
-        settings['permission_backend'] = 'kinto.core.permission.postgresql'
-        settings['permission_url'] = settings['storage_url']
-        return settings
-
     def setUp(self):
         app = self.make_app(settings={"kinto.includes": ""})
         capabilities = app.get("/").json["capabilities"]
