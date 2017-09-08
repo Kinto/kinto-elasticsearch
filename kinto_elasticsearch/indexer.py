@@ -70,7 +70,7 @@ class BulkClient:
         self.indexer = indexer
         self.operations = []
 
-    def index_record(self, bucket_id, collection_id, record, id_field):
+    def index_record(self, bucket_id, collection_id, record, id_field="id"):
         indexname = self.indexer.indexname(bucket_id, collection_id)
         record_id = record[id_field]
         self.operations.append({
@@ -81,7 +81,7 @@ class BulkClient:
             '_source': record,
         })
 
-    def unindex_record(self, bucket_id, collection_id, record, id_field):
+    def unindex_record(self, bucket_id, collection_id, record, id_field="id"):
         indexname = self.indexer.indexname(bucket_id, collection_id)
         record_id = record[id_field]
         self.operations.append({

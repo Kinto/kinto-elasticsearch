@@ -1,78 +1,119 @@
+import argparse
 import sys
 
 from pyramid.paster import bootstrap
 
 from kinto.core.storage.exceptions import RecordNotFoundError
-from kinto.core.storage import Sort
+from kinto.core.storage import Sort, Filter
+from kinto.core.utils import COMPARISON
 
 
-def main(args=None):
-    if args is None:
-        args = sys.argv[1:]
-    try:
-        # XXX: use argsparse
-        config_file, bucket_id, collection_id = args
-    except ValueError:
-        print("Usage: %s CONFIG BUCKET COLLECTION" % sys.argv[0])
-        return 1
+DEFAULT_CONFIG_FILE = 'config/kinto.ini'
+
+
+def main(cli_args=None):
+    if cli_args is None:
+        cli_args = sys.argv[1:]
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--ini',
+                        help='Application configuration file',
+                        dest='ini_file',
+                        required=False,
+                        default=DEFAULT_CONFIG_FILE)
+    parser.add_argument('-b', '--bucket',
+                        help='Bucket name.',
+                        type=str)
+    parser.add_argument('-c', '--collection',
+                        help='Collection name.',
+                        type=str)
+    args = parser.parse_args(args=cli_args)
 
     print("Load config...")
-    env = bootstrap(config_file)
-
+    env = bootstrap(args.ini_file)
     registry = env['registry']
-    storage = registry.storage
-    # XXX: exit cleanly if no indexer defined.
-    indexer = registry.indexer
 
-    # Open collection metadata.
-    # XXX: https://github.com/Kinto/kinto/issues/710
+    # Make sure that kinto-elasticsearch is configured.
     try:
-        metadata = storage.get(parent_id="/buckets/%s" % bucket_id,
-                               collection_id="collection",
-                               object_id=collection_id)
+        indexer = registry.indexer
+    except AttributeError:
+        print("kinto-elasticsearch not available.")
+        return 22
+
+    bucket_id = args.bucket
+    collection_id = args.collection
+
+    # Get index schema from collection metadata.
+    try:
+        schema = get_index_schema(registry.storage, bucket_id, collection_id)
     except RecordNotFoundError:
         print("No collection '%s' in bucket '%s'" % (collection_id, bucket_id))
         return 32
 
-    schema = metadata.get("index:schema")
     # Give up if collection has no index mapping.
     if schema is None:
         print("No `index:schema` attribute found in collection metadata.")
         return 42
 
     # XXX: Are you sure?
+    recreate_index(indexer, bucket_id, collection_id, schema)
+    reindex_records(indexer, registry.storage, bucket_id, collection_id)
 
+    return 0
+
+
+def get_index_schema(storage, bucket_id, collection_id):
+    # Open collection metadata.
+    # XXX: https://github.com/Kinto/kinto/issues/710
+    metadata = storage.get(parent_id="/buckets/%s" % bucket_id,
+                           collection_id="collection",
+                           object_id=collection_id)
+    return metadata.get("index:schema")
+
+
+def recreate_index(indexer, bucket_id, collection_id, schema):
+    index_name = indexer.indexname(bucket_id, collection_id)
     # Delete existing index.
-    r = indexer.delete_index(bucket_id, collection_id)
-    print("Old index deleted.")
+    indexer.delete_index(bucket_id, collection_id)
+    print("Old index '%s' deleted." % index_name)
     # Recreate the index with the new schema.
     indexer.create_index(bucket_id, collection_id, schema=schema)
-    print("New index created.")
+    print("New index '%s' created." % index_name)
 
-    # Fetch list of records and reindex.
-    # XXX: we will reach the storage_fetch_limit, so we need pagination!
+
+def get_paginated_records(storage, bucket_id, collection_id, limit=5000):
+    # We can reach the storage_fetch_limit, so we use pagination.
+    parent_id = "/buckets/%s/collections/%s" % (bucket_id, collection_id)
+    sorting = [Sort('last_modified', -1)]
     pagination_rules = []
     while "not gone through all pages":
-        records, count = storage.get_all(parent_id="/buckets/%s/collections/%s" % (bucket_id, collection_id),
-                                         collection_id="record",
-                                         pagination_rules=pagination_rules,
-                                         sorting=[Sort('last_modified', -1)])
-
+        records, _ = storage.get_all(parent_id=parent_id,
+                                     collection_id="record",
+                                     pagination_rules=pagination_rules,
+                                     sorting=sorting,
+                                     limit=limit)
         if len(records) == 0:
-            print("No records to index.")
-            return 0
+            break  # Done.
+
+        yield records
+
+        smallest_timestamp = records[-1]["last_modified"]
+        pagination_rules = [
+            [Filter("last_modified", smallest_timestamp, COMPARISON.LT)]
+        ]
+
+
+def reindex_records(indexer, storage, bucket_id, collection_id):
+    total = 0
+    for records in get_paginated_records(storage, bucket_id, collection_id):
         try:
             with indexer.bulk() as bulk:
                 for record in records:
                     bulk.index_record(bucket_id,
                                       collection_id,
-                                      record=record,
-                                      id_field="id")
-                    print(".", end="")
+                                      record=record)
+                print(".", end="")
+            total += len(bulk.operations)
         except elasticsearch.ElasticsearchException:
             logger.exception("Failed to index record")
-
-        break # XXX pagination_rules = ...
-
-    print("Done.")
-    return 0
+    print("\n%s records reindexed." % total)
