@@ -36,3 +36,6 @@ tests-once: install-dev
 
 tests: tox
 	$(VENV)/bin/tox
+
+flake8: install-dev
+	$(VENV)/bin/flake8 kinto_elasticsearch tests
