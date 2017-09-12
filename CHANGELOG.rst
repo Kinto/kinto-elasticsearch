@@ -2,12 +2,14 @@ Changelog
 =========
 
 
-0.3.0 (unreleased)
+0.3.0 (2017-09-12)
 ------------------
 
 **New features**
 
 - Add StatsD timer to measure E/S indexation (fixes #54)
+- Add a ``kinto-reindex`` command to reindex existing collections of records (fixes #56)
+  
 
 0.2.1 (2017-06-14)
 ------------------
