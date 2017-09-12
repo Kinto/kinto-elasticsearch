@@ -9,16 +9,22 @@ with open('README.rst') as readme_file:
 with open('CHANGELOG.rst') as history_file:
     history = history_file.read()
 
-requirements = [
+REQUIREMENTS = [
     'elasticsearch',
     'kinto>=6.0.0'
 ]
 
-test_requirements = [
+TEST_REQUIREMENTS = [
     'mock',
     'unittest2',
     'webtest',
 ]
+
+ENTRY_POINTS = {
+    'console_scripts': [
+        'kinto-elasticsearch-reindex = kinto_elasticsearch.command_reindex:main'
+    ],
+}
 
 setup(
     name='kinto-elasticsearch',
@@ -33,7 +39,7 @@ setup(
     ],
     package_dir={'kinto_elasticsearch': 'kinto_elasticsearch'},
     include_package_data=True,
-    install_requires=requirements,
+    install_requires=REQUIREMENTS,
     license="Apache License (2.0)",
     zip_safe=False,
     keywords='kinto elasticsearch index',
@@ -48,5 +54,6 @@ setup(
         'Programming Language :: Python :: 3.5',
     ],
     test_suite='tests',
-    tests_require=test_requirements
+    tests_require=TEST_REQUIREMENTS,
+    entry_points=ENTRY_POINTS
 )

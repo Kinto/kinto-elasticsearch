@@ -58,13 +58,11 @@ def on_record_changed(event):
                 if action == ACTIONS.DELETE.value:
                     bulk.unindex_record(bucket_id,
                                         collection_id,
-                                        record=change["old"],
-                                        id_field="id")
+                                        record=change["old"])
                 else:
                     bulk.index_record(bucket_id,
                                       collection_id,
-                                      record=change["new"],
-                                      id_field="id")
+                                      record=change["new"])
     except elasticsearch.ElasticsearchException:
         logger.exception("Failed to index record")
 
