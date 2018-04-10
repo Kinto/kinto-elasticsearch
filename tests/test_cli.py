@@ -87,13 +87,13 @@ class TestMain(BaseWebTest, unittest.TestCase):
     def test_get_paginated_records(self):
         # Create collection or bucket
         self.app.put("/buckets/bid", headers=self.headers)
-        body = {"data": {"index:settings": self.schema}}
+        body = {"data": {"index:schema": self.schema}}
         self.app.put_json("/buckets/bid/collections/cid", body, headers=self.headers)
         for i in range(5):
             self.app.post_json("/buckets/bid/collections/cid/records",
                                {"data": {"build": {"id": "efg%d" % i, "date": "2017-02-01"}}},
                                headers=self.headers)
-        count = 0
+        page_count = 0
         for records in get_paginated_records(self.app.app.registry.storage, 'bid', 'cid', limit=3):
-            count += 1
-        assert count == 2
+            page_count += 1
+        assert page_count == 2

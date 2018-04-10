@@ -2,10 +2,12 @@ Changelog
 =========
 
 
-0.4.0 (unreleased)
+0.3.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+**Bug fixes**
+
+- Fix the reindex get_paginated_records function. (fixes #61)
 
 
 0.3.0 (2017-09-12)
