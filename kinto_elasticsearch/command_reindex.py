@@ -96,10 +96,11 @@ def get_paginated_records(storage, bucket_id, collection_id, limit=5000):
                                      pagination_rules=pagination_rules,
                                      sorting=sorting,
                                      limit=limit)
-        if len(records) == 0:
-            break  # Done.
 
         yield records
+
+        if len(records) < limit:
+            break  # Done.
 
         smallest_timestamp = records[-1]["last_modified"]
         pagination_rules = [

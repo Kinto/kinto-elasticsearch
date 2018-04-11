@@ -2,7 +2,7 @@ import elasticsearch
 import mock
 import os
 import unittest
-from kinto_elasticsearch.command_reindex import main, reindex_records
+from kinto_elasticsearch.command_reindex import main, reindex_records, get_paginated_records
 from . import BaseWebTest
 
 HERE = os.path.abspath(os.path.dirname(__file__))
@@ -83,3 +83,17 @@ class TestMain(BaseWebTest, unittest.TestCase):
         with mock.patch('sys.argv', ['cli', '--ini', os.path.join(HERE, 'wrong_config.ini')]):
             exit_code = main()
             assert exit_code == 62
+
+    def test_get_paginated_records(self):
+        # Create collection or bucket
+        self.app.put("/buckets/bid", headers=self.headers)
+        body = {"data": {"index:schema": self.schema}}
+        self.app.put_json("/buckets/bid/collections/cid", body, headers=self.headers)
+        for i in range(5):
+            self.app.post_json("/buckets/bid/collections/cid/records",
+                               {"data": {"build": {"id": "efg%d" % i, "date": "2017-02-01"}}},
+                               headers=self.headers)
+        page_count = 0
+        for records in get_paginated_records(self.app.app.registry.storage, 'bid', 'cid', limit=3):
+            page_count += 1
+        assert page_count == 2
