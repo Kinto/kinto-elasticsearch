@@ -52,7 +52,7 @@ def search_view(request, **kwargs):
     try:
         results = indexer.search(bucket_id, collection_id, **kwargs)
 
-    except elasticsearch.NotFoundError as e:
+    except elasticsearch.NotFoundError:
         # If plugin was enabled after the creation of the collection.
         indexer.create_index(bucket_id, collection_id)
         results = indexer.search(bucket_id, collection_id, **kwargs)
@@ -73,7 +73,7 @@ def search_view(request, **kwargs):
 
     except elasticsearch.ElasticsearchException as e:
         # General failure.
-        logger.exception("Index query failed.")
+        logger.exception(f"Index query failed ({e})")
         results = {}
 
     return results
