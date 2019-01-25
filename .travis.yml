@@ -21,9 +21,3 @@ after_success:
     # Report coverage results to coveralls.io
     - pip install coveralls
     - coveralls
-matrix:
-  include:
-    - python: 3.7
-      dist: xenial
-      sudo: true
-      env: TOX_ENV=py37
