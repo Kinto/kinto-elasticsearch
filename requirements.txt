@@ -11,7 +11,7 @@ elasticsearch==6.3.1
 hupper==1.10.2
 idna==2.8
 iso8601==0.1.12
-jsonpatch==1.23
+jsonpatch==1.25
 jsonpointer==2.0
 jsonschema==3.2.0
 kinto==13.1.0
