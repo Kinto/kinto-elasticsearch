@@ -6,7 +6,6 @@ addons:
     sources:
       - elasticsearch-5.x
     packages:
-    - oracle-java8-set-default
     - elasticsearch
   postgresql: "9.5"
 services:
