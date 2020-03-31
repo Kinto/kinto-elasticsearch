@@ -6,7 +6,7 @@ colander==1.7.0
 colorama==0.4.3
 cornice==3.5.1
 cornice-swagger==0.7.0
-dockerflow==2018.4.0
+dockerflow==2019.10.0
 elasticsearch==7.6.0
 hupper==1.10.2
 idna==2.8
