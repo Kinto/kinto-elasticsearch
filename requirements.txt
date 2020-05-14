@@ -7,7 +7,7 @@ colorama==0.4.3
 cornice==4.0.1
 cornice-swagger==1.0.0
 dockerflow==2019.10.0
-elasticsearch==7.6.0
+elasticsearch==7.7.0
 hupper==1.10.2
 idna==2.9
 iso8601==0.1.12
